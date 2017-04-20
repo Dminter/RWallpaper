@@ -1,10 +1,10 @@
-package com.zncm.rwallpaper.api;
+package com.zncm.rwallpaper.service.bing;
 
 /**
  * Created by jiaomx on 2017/4/19.
  */
 
-public class Img {
+public class BingImg {
 
     private String url;
 

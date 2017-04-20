@@ -15,6 +15,15 @@ public class SPHelper {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
         sp.edit().putBoolean("float_text", float_text).commit();
     }
+    public static boolean isOnlyWifi() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
+        return sp.getBoolean("only_wifi", true);
+    }
+
+    public static void setIsOnlyWifi(boolean only_wifi) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
+        sp.edit().putBoolean("only_wifi", only_wifi).commit();
+    }
 
     public static String getTextPath() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
@@ -24,6 +33,16 @@ public class SPHelper {
     public static void setTextPath(String text_path) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
         sp.edit().putString("text_path", text_path).commit();
+    }
+
+    public static String getLocalPath() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
+        return sp.getString("local_path", MyPath.getPathImg());
+    }
+
+    public static void setLocalPath(String local_path) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(MyApp.ctx);
+        sp.edit().putString("local_path", local_path).commit();
     }
 
     public static int getTypeColor() {

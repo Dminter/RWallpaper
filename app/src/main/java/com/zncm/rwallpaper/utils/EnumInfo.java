@@ -9,8 +9,9 @@ public class EnumInfo {
      * 色彩方式
      */
     public enum typeColor {
-
-        MATERIAL(1, "MATERIAL"), DEFAULT(2, "DEFAULT"), RANDOM(3, "RANDOM");
+        //        9
+//                17
+        MATERIAL(1, "9种颜色"), DEFAULT(2, "17种颜色"), RANDOM(3, "随机");
         private int value;
         public String strName;
 
@@ -42,7 +43,8 @@ public class EnumInfo {
      */
     public enum typeSite {
 
-        BING(1, "BING"), UNSPLASH(2,"UNSPLASH");
+
+        BING(1, "BING"), UNSPLASH(2, "UNSPLASH"), BACKDROPS(3, "BACKDROPS");
         private int value;
         public String strName;
 
@@ -74,7 +76,7 @@ public class EnumInfo {
      */
     public enum typeSource {
 
-        COLOR(1, "COLOR"), SITE(2, "SITE"),;
+        COLOR(1, "纯色"), SITE(2, "网络"), LOCAL(3, "本地"),;
         private int value;
         public String strName;
 

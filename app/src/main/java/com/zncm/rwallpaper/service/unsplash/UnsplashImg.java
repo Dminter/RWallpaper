@@ -4,7 +4,7 @@ package com.zncm.rwallpaper.service.unsplash;
  * Created by jiaomx on 2017/4/19.
  */
 
-public class UnsplashUrl {
+public class UnsplashImg {
 
     private String regular;
 

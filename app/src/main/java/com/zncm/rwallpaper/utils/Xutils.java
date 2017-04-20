@@ -3,10 +3,14 @@ package com.zncm.rwallpaper.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
@@ -17,6 +21,7 @@ import android.widget.Toast;
 import com.zncm.rwallpaper.MyApp;
 import com.zncm.rwallpaper.R;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,8 +31,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -64,6 +69,26 @@ public class Xutils {
         return path;
     }
 
+
+    private static String getCharset(String fileName) throws IOException {
+        BufferedInputStream bin = new BufferedInputStream(new FileInputStream(fileName));
+        int p = (bin.read() << 8) + bin.read();
+        String code = "UTF-8";
+        switch (p) {
+            case 0xefbb:
+                code = "UTF-8";
+                break;
+            case 0xfffe:
+                code = "Unicode";
+                break;
+            case 0xfeff:
+                code = "UTF-16BE";
+                break;
+            default:
+                code = "GBK";
+        }
+        return code;
+    }
     public static void readTxtFileToApp() {
         ArrayList<String> list = new ArrayList<>();
         try {
@@ -71,11 +96,11 @@ public class Xutils {
             if (!notEmptyOrNull(filePath)) {
                 return;
             }
-            String encoding = "UTF-8";
+
             File file = new File(filePath);
             if (file.isFile() && file.exists()) { //判断文件是否存在
                 InputStreamReader read = new InputStreamReader(
-                        new FileInputStream(file), encoding);//考虑到编码格式
+                        new FileInputStream(file), getCharset(filePath));//考虑到编码格式
                 BufferedReader bufferedReader = new BufferedReader(read);
                 String lineTxt = null;
                 while ((lineTxt = bufferedReader.readLine()) != null) {
@@ -272,8 +297,51 @@ public class Xutils {
         }
     }
 
+    public static void openUrl(String url) {
+        try {
+            Uri uri = Uri.parse(url);
+            Intent it = new Intent(Intent.ACTION_VIEW, uri);
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            MyApp.ctx.startActivity(it);
+        } catch (Exception e) {
 
-    public static <T> boolean listNotNull(List<T> t) {
+        }
+    }
+
+    public static boolean isImageEnd(String end) {
+        return end.endsWith(".jpg") || end.endsWith(".png")
+                || end.endsWith(".jpeg") || end.endsWith(".bmp");
+    }
+
+    public static boolean isWiFiActive(Context inContext) {
+        Context context = inContext.getApplicationContext();
+        ConnectivityManager connectivity = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo[] info = connectivity.getAllNetworkInfo();
+            if (info != null) {
+                for (int i = 0; i < info.length; i++) {
+                    if (info[i].getTypeName().equals("WIFI") && info[i].isConnected()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static String getVersionName(Context context) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            PackageInfo packInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+            String version = packInfo.versionName;
+            return version;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public static <T> boolean listNotNull(Collection<T> t) {
         if (t != null && t.size() > 0) {
             return true;
         } else {

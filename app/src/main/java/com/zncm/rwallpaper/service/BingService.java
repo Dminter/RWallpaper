@@ -5,8 +5,8 @@ package com.zncm.rwallpaper.service;
  */
 
 
-import com.zncm.rwallpaper.api.Data;
-import com.zncm.rwallpaper.api.Img;
+import com.zncm.rwallpaper.service.bing.BingData;
+import com.zncm.rwallpaper.service.bing.BingImg;
 
 import retrofit2.http.GET;
 import rx.Observable;
@@ -15,5 +15,5 @@ public interface BingService {
     String BASE_URL = "https://bing.ioliu.cn/v1/";
 
     @GET("rand?type=json")
-    Observable<Data<Img>> getRandomBing();
+    Observable<BingData<BingImg>> getRandomBing();
 }
