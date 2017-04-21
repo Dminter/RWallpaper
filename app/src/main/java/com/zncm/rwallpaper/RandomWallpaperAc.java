@@ -15,11 +15,15 @@ import android.text.TextPaint;
 import com.zncm.rwallpaper.api.ServiceFactory;
 import com.zncm.rwallpaper.service.BackdropsService;
 import com.zncm.rwallpaper.service.BingService;
+import com.zncm.rwallpaper.service.LovebizhiService;
 import com.zncm.rwallpaper.service.UnsplashService;
 import com.zncm.rwallpaper.service.backdrops.BackdropsData;
 import com.zncm.rwallpaper.service.backdrops.BackdropsImg;
 import com.zncm.rwallpaper.service.bing.BingData;
 import com.zncm.rwallpaper.service.bing.BingImg;
+import com.zncm.rwallpaper.service.lovebizhi.LovebizhiData;
+import com.zncm.rwallpaper.service.lovebizhi.LovebizhiImg;
+import com.zncm.rwallpaper.service.lovebizhi.LovebizhiImgUrl;
 import com.zncm.rwallpaper.service.unsplash.UnsplashData;
 import com.zncm.rwallpaper.service.unsplash.UnsplashImg;
 import com.zncm.rwallpaper.utils.ColorGenerator;
@@ -136,6 +140,42 @@ public class RandomWallpaperAc extends AppCompatActivity {
                                             for (BackdropsImg url : imgUrls
                                                     ) {
                                                 MyApp.urlQueue.add(BackdropsService.WALLS_URL + url.getWallpaper_image());
+                                            }
+                                            nextUrl = MyApp.urlQueue.poll();
+                                            oriDownload(nextUrl);
+                                        }
+                                    }
+                                });
+                    } else {
+                        nextUrl = MyApp.urlQueue.poll();
+                        oriDownload(nextUrl);
+                    }
+
+
+                } else if (SPHelper.getTypeSite() == EnumInfo.typeSite.LOVEBIZHI.getValue()) {
+
+                    if (!Xutils.listNotNull(MyApp.urlQueue)) {
+                        ServiceFactory.getInstance().createService(LovebizhiService.class)
+                                .getRandomImg()
+                                .subscribe(new Subscriber<LovebizhiData<LovebizhiImg<LovebizhiImgUrl>>>() {
+                                    @Override
+                                    public void onCompleted() {
+
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+
+                                    }
+
+                                    @Override
+                                    public void onNext(LovebizhiData<LovebizhiImg<LovebizhiImgUrl>> img) {
+                                        List<LovebizhiImg<LovebizhiImgUrl>> imgUrls = img.getData();
+                                        if (Xutils.listNotNull(imgUrls)) {
+                                            Collections.shuffle(imgUrls);
+                                            for (LovebizhiImg<LovebizhiImgUrl> url : imgUrls
+                                                    ) {
+                                                MyApp.urlQueue.add(url.getImage().getBig());
                                             }
                                             nextUrl = MyApp.urlQueue.poll();
                                             oriDownload(nextUrl);

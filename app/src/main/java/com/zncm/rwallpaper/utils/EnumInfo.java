@@ -44,7 +44,7 @@ public class EnumInfo {
     public enum typeSite {
 
 
-        BING(1, "BING"), UNSPLASH(2, "UNSPLASH"), BACKDROPS(3, "BACKDROPS");
+        BING(1, "BING"), UNSPLASH(2, "UNSPLASH"), BACKDROPS(3, "BACKDROPS"), LOVEBIZHI(4, "LOVEBIZHI");
         private int value;
         public String strName;
 

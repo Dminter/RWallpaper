@@ -134,6 +134,7 @@ public class SettingAc extends MaterialSettings {
                 items.add(EnumInfo.typeSite.BING.getStrName());
                 items.add(EnumInfo.typeSite.UNSPLASH.getStrName());
                 items.add(EnumInfo.typeSite.BACKDROPS.getStrName());
+                items.add(EnumInfo.typeSite.LOVEBIZHI.getStrName());
                 new MaterialDialog.Builder(ctx).title("网络壁纸").items(items).theme(Theme.LIGHT).itemsCallbackSingleChoice(SPHelper.getTypeSite() - 1, new MaterialDialog.ListCallbackSingleChoice() {
 
                     @Override
@@ -201,7 +202,8 @@ public class SettingAc extends MaterialSettings {
 
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-
+                        MyApp.urlQueue.clear();
+                        RandomWallpaperAc.lastChange = 0L;
                     }
                 }).show();
 
