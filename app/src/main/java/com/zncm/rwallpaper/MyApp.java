@@ -17,6 +17,7 @@ public class MyApp extends Application {
     public static ArrayList<String> wordLines = new ArrayList<>();
     public static Queue<String> urlQueue = new LinkedList<String>();
 
+
     @Override
     public void onCreate() {
         super.onCreate();

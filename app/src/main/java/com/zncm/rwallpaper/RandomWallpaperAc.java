@@ -15,12 +15,15 @@ import android.text.TextPaint;
 import com.zncm.rwallpaper.api.ServiceFactory;
 import com.zncm.rwallpaper.service.BackdropsService;
 import com.zncm.rwallpaper.service.BingService;
+import com.zncm.rwallpaper.service.GankService;
 import com.zncm.rwallpaper.service.LovebizhiService;
 import com.zncm.rwallpaper.service.UnsplashService;
 import com.zncm.rwallpaper.service.backdrops.BackdropsData;
 import com.zncm.rwallpaper.service.backdrops.BackdropsImg;
 import com.zncm.rwallpaper.service.bing.BingData;
 import com.zncm.rwallpaper.service.bing.BingImg;
+import com.zncm.rwallpaper.service.gank.GankData;
+import com.zncm.rwallpaper.service.gank.GankImg;
 import com.zncm.rwallpaper.service.lovebizhi.LovebizhiData;
 import com.zncm.rwallpaper.service.lovebizhi.LovebizhiImg;
 import com.zncm.rwallpaper.service.lovebizhi.LovebizhiImgUrl;
@@ -43,15 +46,18 @@ import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import rx.Subscriber;
+import top.zibin.luban.Luban;
+import top.zibin.luban.OnCompressListener;
 
 
 public class RandomWallpaperAc extends AppCompatActivity {
     ArrayList<String> wordLines = new ArrayList<>();
     WallpaperManager wallpaperManager = null;
-    String nextLine = "";
+   static String nextLine = "";
     String nextUrl = "";
     Context ctx;
     static Long lastChange = 0L;
@@ -188,9 +194,40 @@ public class RandomWallpaperAc extends AppCompatActivity {
                     }
 
 
+                } else if (SPHelper.getTypeSite() == EnumInfo.typeSite.WALLHAVEN.getValue()) {
+                    //https://alpha.wallhaven.cc/latest
+                    String url = "https://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-" + new Random().nextInt(507840) + ".jpg";
+                    oriDownload(url);
+                }if (SPHelper.getTypeSite() == EnumInfo.typeSite.GANK.getValue()) {
+                    ServiceFactory.getInstance().createService(GankService.class)
+                            .getRandomBing()
+                            .subscribe(new Subscriber<GankData<GankImg>>() {
+                                @Override
+                                public void onCompleted() {
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    Xutils.debug("e::" + e);
+                                }
+
+                                @Override
+                                public void onNext(GankData<GankImg> imgData) {
+
+                                    List<GankImg> imgUrls = imgData.getResults();
+                                    if (Xutils.listNotNull(imgUrls)) {
+                                        Collections.shuffle(imgUrls);
+                                        for (GankImg url : imgUrls
+                                                ) {
+                                            MyApp.urlQueue.add(url.getUrl());
+                                        }
+                                        nextUrl = MyApp.urlQueue.poll();
+                                        oriDownload(nextUrl);
+                                    }
+                                }
+                            });
                 }
-
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -213,10 +250,13 @@ public class RandomWallpaperAc extends AppCompatActivity {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
+        if (ServiceFactory.mOkHttpClient == null) {
+            ServiceFactory.mOkHttpClient = new OkHttpClient.Builder().build();
+        }
         ServiceFactory.mOkHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
+                lastChange = 0L;
             }
 
             @Override
@@ -234,10 +274,10 @@ public class RandomWallpaperAc extends AppCompatActivity {
                     fileOutputStream.flush();
                     fileOutputStream.close();
                     inputStream.close();
-                    Bitmap oldBitmap = decodeBitmap(filePath, Xutils.getDeviceWidth(), Xutils.getDeviceHeight());
-                    Bitmap bitmap = getNewBitMap(oldBitmap);
-                    wallpaperManager.setBitmap(bitmap);
+                    Bitmap oldBitmap = decodeBitmap(ctx, filePath, Xutils.getDeviceWidth(), Xutils.getDeviceHeight());
+
                 } catch (Exception e) {
+                    lastChange = 0L;
                     e.printStackTrace();
                 }
             }
@@ -245,25 +285,99 @@ public class RandomWallpaperAc extends AppCompatActivity {
     }
 
 
-    public static Bitmap decodeBitmap(String path, int displayWidth, int displayHeight) {
-        if (!Xutils.notEmptyOrNull(path)) {
-            return getBitmapColor();
-        }
-
-        BitmapFactory.Options op = new BitmapFactory.Options();
-        op.inJustDecodeBounds = true;
-        int wRatio = (int) Math.ceil(op.outWidth / (float) displayWidth);
-        int hRatio = (int) Math.ceil(op.outHeight / (float) displayHeight);
-        if (wRatio > 1 && hRatio > 1) {
-            if (wRatio > hRatio) {
-                op.inSampleSize = wRatio;
-            } else {
-                op.inSampleSize = hRatio;
+    public static Bitmap decodeBitmap(final Context ctx, final String path, final int displayWidth, final int displayHeight) {
+        Bitmap retBitmap = getBitmapColor();
+        try {
+            if (!Xutils.notEmptyOrNull(path)) {
+                return retBitmap;
             }
+
+//            BitmapFactory.Options op = new BitmapFactory.Options();
+//            op.inJustDecodeBounds = true;
+//            int wRatio = (int) Math.ceil(op.outWidth / (float) displayWidth);
+//            int hRatio = (int) Math.ceil(op.outHeight / (float) displayHeight);
+//            if (wRatio > 1 && hRatio > 1) {
+//                if (wRatio > hRatio) {
+//                    op.inSampleSize = wRatio;
+//                } else {
+//                    op.inSampleSize = hRatio;
+//                }
+//            }
+//            op.inJustDecodeBounds = false;
+//            Bitmap bmp = BitmapFactory.decodeFile(path, op).copy(Bitmap.Config.ARGB_8888, true);
+//            retBitmap = Bitmap.createScaledBitmap(bmp, displayWidth, displayHeight, true);
+
+
+//            Luban.get(ctx)
+//                    .load(new File(path))
+//                    .putGear(Luban.THIRD_GEAR)
+//                    .asObservable()
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .doOnError(new Action1<Throwable>() {
+//                        @Override
+//                        public void call(Throwable throwable) {
+//                            throwable.printStackTrace();
+//                        }
+//                    })
+//                    .onErrorResumeNext(new Func1<Throwable, Observable<? extends File>>() {
+//                        @Override
+//                        public Observable<? extends File> call(Throwable throwable) {
+//                            return Observable.empty();
+//                        }
+//                    })
+//                    .subscribe(new Action1<File>() {
+//                        @Override
+//                        public void call(File file) {
+//                            // TODO 压缩成功后调用，返回压缩后的图片文件
+//                        }
+//                    }).launch();    //启动压缩
+            Luban.get(ctx)
+                    .load(new File(path))                     //传人要压缩的图片
+                    .putGear(Luban.THIRD_GEAR)      //设定压缩档次，默认三挡
+                    .setCompressListener(new OnCompressListener() { //设置回调
+
+                        @Override
+                        public void onStart() {
+                            // TODO 压缩开始前调用，可以在方法内启动 loading UI
+                        }
+
+                        @Override
+                        public void onSuccess(File file) {
+                            // TODO 压缩成功后调用，返回压缩后的图片文件
+//                            BitmapFactory.Options op = new BitmapFactory.Options();
+//                            op.inJustDecodeBounds = true;
+//                            int wRatio = (int) Math.ceil(op.outWidth / (float) displayWidth);
+//                            int hRatio = (int) Math.ceil(op.outHeight / (float) displayHeight);
+//                            if (wRatio > 1 && hRatio > 1) {
+//                                if (wRatio > hRatio) {
+//                                    op.inSampleSize = wRatio;
+//                                } else {
+//                                    op.inSampleSize = hRatio;
+//                                }
+//                            }
+//                            op.inJustDecodeBounds = false;
+                            Bitmap bmp = BitmapFactory.decodeFile(path).copy(Bitmap.Config.RGB_565, true);
+                            Bitmap   retBitmap = Bitmap.createScaledBitmap(bmp, displayWidth, displayHeight, true);
+                            Bitmap bitmap = getNewBitMap(ctx,retBitmap);
+                            try {
+                                WallpaperManager.getInstance(ctx).setBitmap(bitmap);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            // TODO 当压缩过去出现问题时调用
+                        }
+                    }).launch();    //启动压缩
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        op.inJustDecodeBounds = false;
-        Bitmap bmp = BitmapFactory.decodeFile(path, op).copy(Bitmap.Config.ARGB_8888, true);
-        return Bitmap.createScaledBitmap(bmp, displayWidth, displayHeight, true);
+        return retBitmap;
     }
 
     private void initData() {
@@ -287,7 +401,7 @@ public class RandomWallpaperAc extends AppCompatActivity {
         if (SPHelper.getTypeSource() == EnumInfo.typeSource.COLOR.getValue()) {
 
             try {
-                Bitmap bitmap = getNewBitMap(getBitmapColor());
+                Bitmap bitmap = getNewBitMap(ctx,getBitmapColor());
                 wallpaperManager.setBitmap(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -338,15 +452,17 @@ public class RandomWallpaperAc extends AppCompatActivity {
 
     private void setLocalImg() {
         try {
-            Bitmap oldBitmap = decodeBitmap(nextUrl, Xutils.getDeviceWidth(), Xutils.getDeviceHeight());
-            Bitmap bitmap = getNewBitMap(oldBitmap);
-            wallpaperManager.setBitmap(bitmap);
-        } catch (IOException e) {
+            Bitmap oldBitmap = decodeBitmap(ctx, nextUrl, Xutils.getDeviceWidth(), Xutils.getDeviceHeight());
+//            Bitmap bitmap = getNewBitMap(oldBitmap);
+//            wallpaperManager.setBitmap(bitmap);
+
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public Bitmap getNewBitMap(Bitmap newBitmap) {
+    public static Bitmap getNewBitMap(Context ctx,Bitmap newBitmap) {
         Canvas canvas = new Canvas(newBitmap);
         canvas.drawBitmap(newBitmap, 0, 0, null);
         if (SPHelper.isFloatText() && Xutils.notEmptyOrNull(nextLine)) {
@@ -354,7 +470,7 @@ public class RandomWallpaperAc extends AppCompatActivity {
             textPaint.setAntiAlias(true);
             float textSize = Xutils.dip2px(20);
             textPaint.setTextSize(textSize);
-            textPaint.setColor(getResources().getColor(R.color.ms_white));
+            textPaint.setColor(ctx.getResources().getColor(R.color.ms_white));
             int textWidth = Xutils.dip2px(140);
             StaticLayout sl = new StaticLayout(nextLine, textPaint, textWidth, Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
             canvas.translate(Xutils.getDeviceWidth() / 2 - textWidth / 2, 80);

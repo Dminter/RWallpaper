@@ -135,6 +135,8 @@ public class SettingAc extends MaterialSettings {
                 items.add(EnumInfo.typeSite.UNSPLASH.getStrName());
                 items.add(EnumInfo.typeSite.BACKDROPS.getStrName());
                 items.add(EnumInfo.typeSite.LOVEBIZHI.getStrName());
+                items.add(EnumInfo.typeSite.WALLHAVEN.getStrName());
+                items.add(EnumInfo.typeSite.GANK.getStrName());
                 new MaterialDialog.Builder(ctx).title("网络壁纸").items(items).theme(Theme.LIGHT).itemsCallbackSingleChoice(SPHelper.getTypeSite() - 1, new MaterialDialog.ListCallbackSingleChoice() {
 
                     @Override
@@ -229,6 +231,7 @@ public class SettingAc extends MaterialSettings {
                 Xutils.openUrl(Constant.github_url);
             }
         }));
+
 
 
     }

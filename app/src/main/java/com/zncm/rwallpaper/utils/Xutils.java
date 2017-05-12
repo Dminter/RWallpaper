@@ -105,7 +105,6 @@ public class Xutils {
                 String lineTxt = null;
                 while ((lineTxt = bufferedReader.readLine()) != null) {
                     if (lineTxt != null && lineTxt.length() > 0) {
-                        System.out.println(lineTxt.trim());
                         list.add(lineTxt.trim());
                     }
                 }
